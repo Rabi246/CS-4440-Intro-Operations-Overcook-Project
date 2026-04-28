@@ -27,6 +27,9 @@ messages = [
         "Try typing commands like 'grab tomato' or 'use frying pan'."
         ]
 
+#this boolean will serve as the "sleep" function for typing, it will prevent the user from typing when the user is using an item
+typing_sleep = False
+
 #     ----       this will be where the user inputs text.      ----
 input_box = pygame.Rect(350, 690, 700, 50)
 input_active = True 
@@ -34,7 +37,7 @@ input_text = ""
 
 #      ----      this section will be for the items            ----
 
-frying_pan_box = pygame.Rect(100, 50, 100, 100)
+frying_pan_box = pygame.Rect(300, 50, 100, 100)
 frying_pan_in_use = False
 frying_start_time = 0
 frying_pan_cook_time = 5000
@@ -44,7 +47,7 @@ frying_pan_idle_img = pygame.transform.scale(frying_pan_idle_img, (200, 200))
 frying_pan_busy_img = pygame.image.load("images/frying_pan_busy.png")
 frying_pan_busy_img = pygame.transform.scale(frying_pan_busy_img, (200, 200))
 
-cutting_board_box = pygame.Rect(400, 50, 100, 100)
+cutting_board_box = pygame.Rect(600, 50, 100, 100)
 cutting_board_in_use = False
 cutting_start_time = 0
 cutting_use_time = 5000
@@ -54,7 +57,7 @@ cutting_board_idle_img = pygame.transform.scale(cutting_board_idle_img, (200, 20
 cutting_board_busy_img = pygame.image.load("images/cutting_board_busy.png")
 cutting_board_busy_img = pygame.transform.scale(cutting_board_busy_img, (200, 200))
 
-toaster_oven_box = pygame.Rect(700,50, 100, 100)
+toaster_oven_box = pygame.Rect(900,50, 100, 100)
 toaster_oven_in_use = False
 toasting_start_time = 0
 toasting_cook_time = 5000
@@ -63,6 +66,24 @@ toaster_oven_idle_img = pygame.image.load("images/toaster_oven_idle.png")
 toaster_oven_idle_img = pygame.transform.scale(toaster_oven_idle_img, (200, 200))
 toaster_oven_busy_img = pygame.image.load("images/toaster_oven_busy.png")
 toaster_oven_busy_img = pygame.transform.scale(toaster_oven_busy_img, (200, 200))
+
+#      ----       this is just for the visual food crates  ------
+
+meat_crate_img = pygame.image.load("images/meat_crate.png")
+meat_crate_img = pygame.transform.scale(meat_crate_img, (150, 150))
+meat_crate_box = pygame.Rect(60, 50, 100, 100)
+
+lettuce_crate_img = pygame.image.load("images/lettuce_crate.png")
+lettuce_crate_img = pygame.transform.scale(lettuce_crate_img, (150, 150))
+lettuce_crate_box = pygame.Rect(60, 200, 100, 100)
+
+tomato_crate_img = pygame.image.load("images/tomato_crate.png")
+tomato_crate_img = pygame.transform.scale(tomato_crate_img, (150, 150))
+tomato_crate_box = pygame.Rect(60, 350, 100, 100)
+
+bread_crate_img = pygame.image.load("images/bread_crate.png")
+bread_crate_img = pygame.transform.scale(bread_crate_img, (150, 150))
+bread_crate_box = pygame.Rect(60, 500, 100, 100)
 
 #      ----      this section is for the Ingredients           ----
 
@@ -224,13 +245,21 @@ while running:
     input_surface = font.render(input_text, True, black)
     window.blit(input_surface, (input_box.x + 10, input_box.y + 8))
 
+    if typing_sleep:
+        input_active = False
+        sleep_message = font.render("You can't type while using an item...", True, red)
+        window.blit(sleep_message, (input_box.x + 5, input_box.y + 15 ))
+    else:
+        input_active = True
     #        -----         Item boxes
     current_time = pygame.time.get_ticks()
 
     if frying_pan_in_use:
         window.blit(frying_pan_busy_img, frying_pan_box.topleft)
+        typing_sleep = True
         if current_time - frying_start_time >= frying_pan_cook_time:
             frying_pan_in_use = False
+            typing_sleep = False
 
             if held_item == "Meat":
                 held_item = "Cooked Meat"
@@ -240,8 +269,10 @@ while running:
 
     if cutting_board_in_use:
         window.blit(cutting_board_busy_img, cutting_board_box.topleft)
+        typing_sleep = True
         if current_time - cutting_start_time >= cutting_use_time:
             cutting_board_in_use = False
+            typing_sleep = False
 
             if held_item == "Tomato":
                 held_item = "Cut Tomato"
@@ -256,8 +287,10 @@ while running:
 
     if toaster_oven_in_use:
         window.blit(toaster_oven_busy_img, toaster_oven_box.topleft)
+        typing_sleep = True
         if current_time - toasting_start_time >= toasting_cook_time:
             toaster_oven_in_use = False
+            typing_sleep = False
 
             if held_item == "Bread":
                 held_item = "Toasted Bread"
@@ -265,9 +298,13 @@ while running:
     else:
         window.blit(toaster_oven_idle_img, toaster_oven_box.topleft)
     
+    #       -----       the food crates and fridge, just for visual purposes, they dont do anything just serves as a way for the user to know what they can grab  ----
+    window.blit(meat_crate_img, meat_crate_box.topleft)
+    window.blit(lettuce_crate_img, lettuce_crate_box.topleft)
+    window.blit(tomato_crate_img, tomato_crate_box.topleft)
+    window.blit(bread_crate_img, bread_crate_box.topleft)
 
-
-    #.    ------                ingredient boxes
+    #.    ------                ingredients
 
     # i will change this to look less cluttered by using hashmap
     if held_item == "Lettuce":

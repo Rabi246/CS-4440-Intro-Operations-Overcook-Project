@@ -119,6 +119,34 @@ cooked_meat_img = pygame.image.load("images/cooked_meat.png")
 cooked_meat_img = pygame.transform.scale(cooked_meat_img, (200,200))
 
 
+#.       ----- this section is for the burger plate.      -----
+bread_done_box = pygame.Rect(1120, 270, 200, 50)
+lettuce_done_box = pygame.Rect(1120, 320, 200, 50)
+tomato_done_box = pygame.Rect(1120, 370, 200, 50)
+meat_done_box = pygame.Rect(1120, 420, 200, 50)
+bread_done_box_2 = pygame.Rect(1120, 470, 200, 50)
+
+bread_one_img = pygame.image.load("images/bread_done_1.png")
+bread_one_img = pygame.transform.scale(bread_one_img, (200,50))
+bread_two_img = pygame.image.load("images/bread_done_2.png")
+bread_two_img = pygame.transform.scale(bread_two_img, (200,50))
+bread_done = False
+
+lettuce_done_img = pygame.image.load("images/lettuce_done.png")
+lettuce_done_img = pygame.transform.scale(lettuce_done_img, (200,50))
+lettuce_done = False
+
+tomato_done_img = pygame.image.load("images/tomato_done.png")
+tomato_done_img = pygame.transform.scale(tomato_done_img, (200,50))
+tomato_done = False
+
+meat_done_img = pygame.image.load("images/meat_done.png")
+meat_done_img = pygame.transform.scale(meat_done_img, (200,50))
+meat_done = False
+
+
+
+
 #we need this for frame rate.
 clock = pygame.time.Clock()
 FPS = 30
@@ -201,6 +229,44 @@ while running:
                     held_item = "Meat"
                     messages.append("Server: You grabbed Meat...")
                     input_text = ""
+
+                elif input_text.strip().upper() == "PLATE BREAD":
+                    if held_item == "Toasted Bread":
+                        messages.append("Server: You plated the bread...")
+                        held_item = None
+                        bread_done = True
+                        input_text = ""
+                    else:
+                        messages.append("Server: You need bread to plate it...")
+                        input_text = ""
+                elif input_text.strip().upper() == "PLATE LETTUCE":
+                    if held_item == "Cut Lettuce":
+                        messages.append("Server: You plated the lettuce...")
+                        held_item = None
+                        lettuce_done = True
+                        input_text = ""
+                    else:
+                        messages.append("Server: You need cut lettuce to plate it...")
+                        input_text = ""
+                elif input_text.strip().upper() == "PLATE TOMATO":
+                    if held_item == "Cut Tomato":
+                        messages.append("Server: You plated the tomato...")
+                        held_item = None
+                        tomato_done = True
+                        input_text = ""
+                    else:
+                        messages.append("Server: You need cut tomato to plate it...")
+                        input_text = ""
+                elif input_text.strip().upper() == "PLATE MEAT":
+                    if held_item == "Cooked Meat":
+                        messages.append("Server: You plated the meat...")
+                        held_item = None
+                        meat_done = True
+                        input_text = ""
+                    else:
+                        messages.append("Server: You need cooked meat to plate it...")
+                        input_text = ""
+
                 elif input_text.strip().upper() == "DUMP":
                     held_item = None
                     input_text = ""
@@ -327,7 +393,16 @@ while running:
     else:
         window.blit(nothing_img, ingredient_box.topleft)
 
-    
+    if bread_done:
+        window.blit(bread_one_img, bread_done_box.topleft)
+        window.blit(bread_two_img, bread_done_box_2.topleft)
+    if lettuce_done:
+        window.blit(lettuce_done_img, lettuce_done_box.topleft)
+    if tomato_done:
+        window.blit(tomato_done_img, tomato_done_box.topleft)
+    if meat_done:
+        window.blit(meat_done_img, meat_done_box.topleft)
+   
 
     ingredient_box_title = font.render("Holding", True, white)
     window.blit(ingredient_box_title, (ingredient_box.x, ingredient_box.y - 30))

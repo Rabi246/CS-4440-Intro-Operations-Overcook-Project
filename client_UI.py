@@ -113,7 +113,7 @@ while not name_entered:
 # --------------------------------------------------------
 frying_pan_idle_img  = pygame.transform.scale(pygame.image.load("images/frying_pan_idle.png"),  (200, 200))
 frying_pan_busy_img  = pygame.transform.scale(pygame.image.load("images/frying_pan_busy.png"),  (200, 200))
-cutting_board_idle_img = pygame.transform.scale(pygame.image.load("images/cutting_board_idle.png"), (200, 200))
+cutting_board_idle_img = pygame.transform.scale(pygame.image.load("images/murderVeg.png"), (200, 200))
 cutting_board_busy_img = pygame.transform.scale(pygame.image.load("images/cutting_board_busy.png"), (200, 200))
 toaster_oven_idle_img  = pygame.transform.scale(pygame.image.load("images/toaster_oven_idle.png"),  (200, 200))
 toaster_oven_busy_img  = pygame.transform.scale(pygame.image.load("images/toaster_oven_busy.png"),  (200, 200))

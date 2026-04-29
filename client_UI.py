@@ -3,9 +3,7 @@ import pygame
 
 from network import LineReader, send_line
 
-# --------------------------------------------------------
 #  Connection settings
-# --------------------------------------------------------
 HOST = "127.0.0.1"
 PORT = 8910
 
@@ -41,9 +39,8 @@ def receive_loop():
         with messages_lock:
             messages.append(line)
 
-# --------------------------------------------------------
 #  Name prompt screen
-# --------------------------------------------------------
+
 pygame.init()
 
 window_width, window_height = 1400, 750
@@ -108,9 +105,8 @@ while not name_entered:
             else:
                 name_text += event.unicode
 
-# --------------------------------------------------------
 #  Load images
-# --------------------------------------------------------
+
 frying_pan_idle_img  = pygame.transform.scale(pygame.image.load("images/frying_pan_idle.png"),  (200, 200))
 frying_pan_busy_img  = pygame.transform.scale(pygame.image.load("images/frying_pan_busy.png"),  (200, 200))
 cutting_board_idle_img = pygame.transform.scale(pygame.image.load("images/murderVeg.png"), (200, 200))
@@ -140,10 +136,8 @@ tomato_done_img  = pygame.transform.scale(pygame.image.load("images/tomato_done.
 meat_done_img    = pygame.transform.scale(pygame.image.load("images/meat_done.png"),      (200, 50))
 plate_img        = pygame.transform.scale(pygame.image.load("images/plate.png"),           (200, 50))
 
-# --------------------------------------------------------
 #  Layout rects  (sized to match their image dimensions)
-# --------------------------------------------------------
-# stations — 200×200
+
 frying_pan_box    = pygame.Rect(200,  10, 200, 200)
 cutting_board_box = pygame.Rect(450,  10, 200, 200)
 toaster_oven_box  = pygame.Rect(700,  10, 200, 200)
@@ -171,9 +165,8 @@ meat_done_box     = pygame.Rect(990, 410, 200, 50)
 bread_done_box_2  = pygame.Rect(990, 470, 200, 50)
 plate_box         = pygame.Rect(990, 520, 200, 50)
 
-# --------------------------------------------------------
 #  Client-side display state (derived from server messages)
-# --------------------------------------------------------
+
 input_text   = ""
 input_active = True
 
@@ -265,7 +258,6 @@ def update_state_from_message(msg):
             toaster_oven_busy = True
 
     # clear busy when the server sends the "is now" completion message
-    # (these messages don't mention the station name, so check the item)
     if "is now cooked meat" in low or ("no longer have" in low and "meat" in low):
         frying_pan_busy = False
     if "is now cut lettuce" in low or "is now cut tomato" in low or ("no longer have" in low and ("lettuce" in low or "tomato" in low)):
@@ -273,9 +265,7 @@ def update_state_from_message(msg):
     if "is now toasted bread" in low or ("no longer have" in low and "bread" in low):
         toaster_oven_busy = False
 
-# --------------------------------------------------------
 #  Main game loop
-# --------------------------------------------------------
 running = True
 while running:
     window.fill(background_color)
@@ -371,8 +361,8 @@ while running:
         window.blit(tomato_done_img,  tomato_done_box.topleft)
     if meat_done:
         window.blit(meat_done_img,    meat_done_box.topleft)
-
-    # ---- win overlay (triggered by server broadcast) ----
+        
+        #Win condition is having the meat done, so show the win overlay immediately when that happens and option to quit.
     if burger_complete:
         overlay = pygame.Surface((window_width, window_height), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 160))

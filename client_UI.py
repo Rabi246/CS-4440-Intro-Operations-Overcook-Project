@@ -137,29 +137,38 @@ bread_two_img    = pygame.transform.scale(pygame.image.load("images/bread_done_2
 lettuce_done_img = pygame.transform.scale(pygame.image.load("images/lettuce_done.png"),   (200, 50))
 tomato_done_img  = pygame.transform.scale(pygame.image.load("images/tomato_done.png"),    (200, 50))
 meat_done_img    = pygame.transform.scale(pygame.image.load("images/meat_done.png"),      (200, 50))
+plate_img        = pygame.transform.scale(pygame.image.load("images/plate.png"),           (200, 50))
 
 # --------------------------------------------------------
-#  Layout rects
+#  Layout rects  (sized to match their image dimensions)
 # --------------------------------------------------------
-server_box    = pygame.Rect(400, 305, 600, 270)
-input_box     = pygame.Rect(350, 605, 700, 40)
+# stations — 200×200
+frying_pan_box    = pygame.Rect(200,  10, 200, 200)
+cutting_board_box = pygame.Rect(450,  10, 200, 200)
+toaster_oven_box  = pygame.Rect(700,  10, 200, 200)
 
-frying_pan_box    = pygame.Rect(300, 50, 100, 100)
-cutting_board_box = pygame.Rect(600, 50, 100, 100)
-toaster_oven_box  = pygame.Rect(900, 50, 100, 100)
+# ingredient crates — 150×150
+meat_crate_box    = pygame.Rect(10,  10, 150, 150)
+lettuce_crate_box = pygame.Rect(10, 175, 150, 150)
+tomato_crate_box  = pygame.Rect(10, 340, 150, 150)
+bread_crate_box   = pygame.Rect(10, 505, 150, 150)
 
-meat_crate_box    = pygame.Rect(60, 50,  100, 100)
-lettuce_crate_box = pygame.Rect(60, 200, 100, 100)
-tomato_crate_box  = pygame.Rect(60, 350, 100, 100)
-bread_crate_box   = pygame.Rect(60, 500, 100, 100)
+# server chat box (center strip)
+server_box        = pygame.Rect(200, 240, 660, 300)
 
-ingredient_box    = pygame.Rect(1120, 550, 100, 100)
+# text input
+input_box         = pygame.Rect(200, 565, 660, 40)
 
-bread_done_box    = pygame.Rect(1120, 270, 200, 50)
-lettuce_done_box  = pygame.Rect(1120, 320, 200, 50)
-tomato_done_box   = pygame.Rect(1120, 370, 200, 50)
-meat_done_box     = pygame.Rect(1120, 420, 200, 50)
-bread_done_box_2  = pygame.Rect(1120, 470, 200, 50)
+# held ingredient — 200×200
+ingredient_box    = pygame.Rect(990,  40, 200, 200)
+
+# plated burger layers — 200×50 each, stacked
+bread_done_box    = pygame.Rect(990, 230, 200, 50)
+lettuce_done_box  = pygame.Rect(990, 290, 200, 50)
+tomato_done_box   = pygame.Rect(990, 350, 200, 50)
+meat_done_box     = pygame.Rect(990, 410, 200, 50)
+bread_done_box_2  = pygame.Rect(990, 470, 200, 50)
+plate_box         = pygame.Rect(990, 520, 200, 50)
 
 # --------------------------------------------------------
 #  Client-side display state (derived from server messages)
@@ -292,21 +301,28 @@ while running:
 
     # ---- server chat box ----
     title = font.render("Kitchen Server", True, white)
-    window.blit(title, (400, 275))
+    window.blit(title, (server_box.x, server_box.y - 28))
 
     pygame.draw.rect(window, gray,  server_box)
     pygame.draw.rect(window, white, server_box, 3)
 
-    visible = new_msgs[-12:]
-    y = server_box.y + 25
+    line_h = 22
+    padding = 8
+    max_lines = (server_box.height - padding * 2) // line_h
+    visible = new_msgs[-max_lines:]
+
+    chat_surf = pygame.Surface((server_box.width - 20, server_box.height - padding * 2))
+    chat_surf.fill(gray)
+    cy = 0
     for msg in visible:
         surf = small_font.render(msg, True, black)
-        window.blit(surf, (server_box.x + 10, y))
-        y += 25
+        chat_surf.blit(surf, (0, cy))
+        cy += line_h
+    window.blit(chat_surf, (server_box.x + 10, server_box.y + padding))
 
     # ---- input box ----
     input_title = font.render("Your message", True, white)
-    window.blit(input_title, (350, 580))
+    window.blit(input_title, (input_box.x, input_box.y - 28))
 
     box_color = green if input_active else gray
     pygame.draw.rect(window, white, input_box)
@@ -328,9 +344,10 @@ while running:
     # ---- held ingredient ----
     window.blit(ITEM_IMAGES.get(held_item, nothing_img), ingredient_box.topleft)
     label = font.render("Holding", True, white)
-    window.blit(label, (ingredient_box.x, ingredient_box.y - 30))
+    window.blit(label, (ingredient_box.x, ingredient_box.y - 28))
 
     # ---- burger plate ----
+    window.blit(plate_img, plate_box.topleft)
     if bread_done:
         window.blit(bread_one_img,  bread_done_box.topleft)
         window.blit(bread_two_img,  bread_done_box_2.topleft)

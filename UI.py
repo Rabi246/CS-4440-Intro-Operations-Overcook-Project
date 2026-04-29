@@ -4,7 +4,7 @@ import pygame
 pygame.init()
 
 #Set the window size here feel free to change the size. 
-window_width, window_height = 1400, 750
+window_width, window_height = 1400, 680
 window = pygame.display.set_mode((window_width,window_height), 0, 32)
 pygame.display.set_caption("UnderCooked UI")
 
@@ -21,7 +21,7 @@ small_font = pygame.font.Font(None, 24)
 
 
 #    ----   this will be the text box displaying the server info      ----
-server_box = pygame.Rect(400, 300, 600, 350)
+server_box = pygame.Rect(400, 305, 600, 270)
 messages = [
     "Server: welcome to undercooked",
         "Try typing commands like 'grab tomato' or 'use frying pan'."
@@ -31,7 +31,7 @@ messages = [
 typing_sleep = False
 
 #     ----       this will be where the user inputs text.      ----
-input_box = pygame.Rect(350, 690, 700, 50)
+input_box = pygame.Rect(350, 605, 700, 40)
 input_active = True 
 input_text = ""
 
@@ -221,7 +221,7 @@ while running:
 
     #       -----       server chat box          -----
     title = font.render("Kitchen Server", True, white)
-    window.blit(title, (400,270))
+    window.blit(title, (400,275))
     
     pygame.draw.rect(window, gray, server_box)
     pygame.draw.rect(window, white, server_box, 3)
@@ -236,7 +236,7 @@ while running:
 
     #        -----        input chat box             -----
     input_title = font.render("Your message", True, white)
-    window.blit(input_title, (350,660))
+    window.blit(input_title, (350,580))
 
     box_color = green if input_active else gray
     pygame.draw.rect(window, white, input_box)

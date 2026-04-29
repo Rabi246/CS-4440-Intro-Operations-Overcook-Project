@@ -3,7 +3,7 @@ import socket
 def connect_to_server():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    host = 'localhost'
+    host = 'localhost' #'192.168.137.1' hotspot connection
     port = 8910
 
     client_socket.connect((host, port))

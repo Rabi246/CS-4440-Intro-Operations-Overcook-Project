@@ -64,6 +64,7 @@ background_color = (79, 163, 194)
 
 font       = pygame.font.Font(None, 32)
 small_font = pygame.font.Font(None, 24)
+big_font   = pygame.font.Font(None, 96)
 clock      = pygame.time.Clock()
 
 # name-entry phase
@@ -178,10 +179,12 @@ input_active = True
 
 # track what the server tells us we're holding / have plated
 held_item   = None
-bread_done  = False
+bread_done   = False
 lettuce_done = False
-tomato_done = False
-meat_done   = False
+tomato_done  = False
+meat_done    = False
+burger_complete = False
+win_message     = ""   # text shown on the win overlay
 
 # which stations are busy (shown via busy image while server cooks)
 frying_pan_busy    = False
@@ -202,6 +205,7 @@ ITEM_IMAGES = {
 def update_state_from_message(msg):
     """Update local display state based on server messages."""
     global held_item, bread_done, lettuce_done, tomato_done, meat_done
+    global burger_complete, win_message
     global frying_pan_busy, cutting_board_busy, toaster_oven_busy
 
     low = msg.lower()
@@ -234,6 +238,13 @@ def update_state_from_message(msg):
         if "meat" in low:
             meat_done = True
             held_item = None
+        if "*** you win! ***" in low:
+            burger_complete = True
+            win_message = "YOU WIN!"
+
+    if "game over!" in low:
+        burger_complete = True
+        win_message = msg.replace("Server: ", "")
 
     # dump / drop
     if "you dumped" in low or "you dropped" in low:
@@ -275,6 +286,9 @@ while running:
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             input_active = input_box.collidepoint(event.pos)
+
+        elif event.type == pygame.KEYDOWN and burger_complete and event.key == pygame.K_q:
+            running = False
 
         elif event.type == pygame.KEYDOWN and input_active:
             if event.key == pygame.K_RETURN:
@@ -357,6 +371,22 @@ while running:
         window.blit(tomato_done_img,  tomato_done_box.topleft)
     if meat_done:
         window.blit(meat_done_img,    meat_done_box.topleft)
+
+    # ---- win overlay (triggered by server broadcast) ----
+    if burger_complete:
+        overlay = pygame.Surface((window_width, window_height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 160))
+        window.blit(overlay, (0, 0))
+        color = (255, 215, 0) if win_message == "YOU WIN!" else (220, 80, 80)
+        win_surf = big_font.render(win_message if win_message == "YOU WIN!" else "GAME OVER", True, color)
+        window.blit(win_surf, (window_width // 2 - win_surf.get_width() // 2,
+                                window_height // 2 - win_surf.get_height() // 2))
+        sub_surf = font.render(win_message if win_message != "YOU WIN!" else "Burger complete!", True, white)
+        window.blit(sub_surf, (window_width // 2 - sub_surf.get_width() // 2,
+                                window_height // 2 + 60))
+        quit_surf = small_font.render("Press Q to quit.", True, white)
+        window.blit(quit_surf, (window_width // 2 - quit_surf.get_width() // 2,
+                                 window_height // 2 + 95))
 
     pygame.display.flip()
     clock.tick(60)

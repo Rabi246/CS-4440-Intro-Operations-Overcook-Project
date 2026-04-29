@@ -87,7 +87,7 @@ bread_crate_box = pygame.Rect(60, 500, 100, 100)
 
 #      ----      this section is for the Ingredients           ----
 
-ingredient_box = pygame.Rect(1120, 500, 100, 100)
+ingredient_box = pygame.Rect(1120, 550, 100, 100)
 held_item = None
 
 

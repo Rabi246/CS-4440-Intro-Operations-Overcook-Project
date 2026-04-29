@@ -47,7 +47,11 @@ def receive_loop():
 pygame.init()
 
 window_width, window_height = 1400, 750
-window = pygame.display.set_mode((window_width, window_height), 0, 32)
+info = pygame.display.Info()
+scale = min((info.current_w - 50) / window_width, (info.current_h - 100) / window_height)
+actual_w = int(window_width * scale)
+actual_h = int(window_height * scale)
+window = pygame.display.set_mode((actual_w, actual_h), pygame.SCALED)
 pygame.display.set_caption("UnderCooked Client")
 
 black           = (0,   0,   0)

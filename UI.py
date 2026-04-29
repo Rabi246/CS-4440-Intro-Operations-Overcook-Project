@@ -4,7 +4,7 @@ import pygame
 pygame.init()
 
 #Set the window size here feel free to change the size. 
-window_width, window_height = 1400, 680
+window_width, window_height = 1400, 750
 window = pygame.display.set_mode((window_width,window_height), 0, 32)
 pygame.display.set_caption("UnderCooked UI")
 

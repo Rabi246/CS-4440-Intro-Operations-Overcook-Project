@@ -227,23 +227,27 @@ def update_state_from_message(msg):
         held_item = None
 
     # station busy indicators
+    # set busy on "starting" messages (contain the station name)
     if "frying pan" in low:
         if "starting" in low or "cooking" in low or "busy" in low or "in line" in low:
             frying_pan_busy = True
-        elif "finished" in low or "now cooked" in low:
-            frying_pan_busy = False
 
     if "cutting board" in low:
         if "starting" in low or "cutting" in low or "busy" in low or "in line" in low:
             cutting_board_busy = True
-        elif "finished" in low or "now cut" in low:
-            cutting_board_busy = False
 
     if "toaster oven" in low:
         if "starting" in low or "toasting" in low or "busy" in low or "in line" in low:
             toaster_oven_busy = True
-        elif "finished" in low or "now toasted" in low:
-            toaster_oven_busy = False
+
+    # clear busy when the server sends the "is now" completion message
+    # (these messages don't mention the station name, so check the item)
+    if "is now cooked meat" in low or ("no longer have" in low and "meat" in low):
+        frying_pan_busy = False
+    if "is now cut lettuce" in low or "is now cut tomato" in low or ("no longer have" in low and ("lettuce" in low or "tomato" in low)):
+        cutting_board_busy = False
+    if "is now toasted bread" in low or ("no longer have" in low and "bread" in low):
+        toaster_oven_busy = False
 
 # --------------------------------------------------------
 #  Main game loop

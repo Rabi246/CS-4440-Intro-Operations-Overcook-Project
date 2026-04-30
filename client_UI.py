@@ -148,8 +148,8 @@ lettuce_crate_box = pygame.Rect(10, 175, 150, 150)
 tomato_crate_box  = pygame.Rect(10, 340, 150, 150)
 bread_crate_box   = pygame.Rect(10, 505, 150, 150)
 
-# server chat box (center strip)
-server_box        = pygame.Rect(200, 240, 660, 300)
+# server chat box (center strip) — pushed down to avoid station label overlap
+server_box        = pygame.Rect(200, 260, 660, 280)
 
 # text input
 input_box         = pygame.Rect(200, 565, 660, 40)
@@ -183,6 +183,7 @@ win_message     = ""   # text shown on the win overlay
 frying_pan_busy    = False
 cutting_board_busy = False
 toaster_oven_busy  = False
+game_started       = False   # True once server says game has started
 
 ITEM_IMAGES = {
     "Lettuce":      lettuce_img,
@@ -200,8 +201,13 @@ def update_state_from_message(msg):
     global held_item, bread_done, lettuce_done, tomato_done, meat_done
     global burger_complete, win_message
     global frying_pan_busy, cutting_board_busy, toaster_oven_busy
+    global game_started
 
     low = msg.lower()
+
+    # game start detection
+    if "the game has started" in low:
+        game_started = True
 
     # held item tracking
     if "you grabbed" in low:
@@ -243,6 +249,11 @@ def update_state_from_message(msg):
     if "you dumped" in low or "you dropped" in low:
         held_item = None
 
+    # left station — clear held item display (player keeps processed item but
+    # the "holding" box should show it until they plate or dump)
+    if "you left" in low:
+        pass  # held_item stays as-is (player still holds the processed item)
+
     # station busy indicators
     # set busy on "starting" messages (contain the station name)
     if "frying pan" in low:
@@ -257,13 +268,22 @@ def update_state_from_message(msg):
         if "starting" in low or "toasting" in low or "busy" in low or "in line" in low:
             toaster_oven_busy = True
 
-    # clear busy when the server sends the "is now" completion message
-    if "is now cooked meat" in low or ("no longer have" in low and "meat" in low):
-        frying_pan_busy = False
-    if "is now cut lettuce" in low or "is now cut tomato" in low or ("no longer have" in low and ("lettuce" in low or "tomato" in low)):
-        cutting_board_busy = False
-    if "is now toasted bread" in low or ("no longer have" in low and "bread" in low):
-        toaster_oven_busy = False
+    # clear busy only when player LEAVES the station (not when cooking finishes)
+    if "you left" in low:
+        if "frying pan" in low:
+            frying_pan_busy = False
+        if "cutting board" in low:
+            cutting_board_busy = False
+        if "toaster oven" in low:
+            toaster_oven_busy = False
+    # also clear if cooking failed ("no longer have")
+    if "no longer have" in low:
+        if "meat" in low:
+            frying_pan_busy = False
+        if "lettuce" in low or "tomato" in low:
+            cutting_board_busy = False
+        if "bread" in low:
+            toaster_oven_busy = False
 
 #  Main game loop
 running = True
@@ -312,14 +332,34 @@ while running:
 
     line_h = 22
     padding = 8
-    max_lines = (server_box.height - padding * 2) // line_h
-    visible = new_msgs[-max_lines:]
+    max_chat_w = server_box.width - 20
+    chat_h = server_box.height - padding * 2
 
-    chat_surf = pygame.Surface((server_box.width - 20, server_box.height - padding * 2))
+    # Pre-render all wrapped lines from messages, then show the last ones that fit
+    all_lines = []
+    for msg in new_msgs:
+        words = msg.split()
+        current_line = ""
+        for word in words:
+            test = current_line + (" " if current_line else "") + word
+            if small_font.size(test)[0] > max_chat_w:
+                if current_line:
+                    all_lines.append(current_line)
+                current_line = word
+            else:
+                current_line = test
+        if current_line:
+            all_lines.append(current_line)
+
+    # Show only the lines that fit in the box, from the bottom
+    max_visible = chat_h // line_h
+    visible_lines = all_lines[-max_visible:]
+
+    chat_surf = pygame.Surface((max_chat_w, chat_h))
     chat_surf.fill(gray)
     cy = 0
-    for msg in visible:
-        surf = small_font.render(msg, True, black)
+    for line_text in visible_lines:
+        surf = small_font.render(line_text, True, black)
         chat_surf.blit(surf, (0, cy))
         cy += line_h
     window.blit(chat_surf, (server_box.x + 10, server_box.y + padding))
@@ -328,22 +368,43 @@ while running:
     input_title = font.render("Your message", True, white)
     window.blit(input_title, (input_box.x, input_box.y - 28))
 
+    # Show lobby hint if game hasn't started
+    if not game_started and not burger_complete:
+        lobby_hint = small_font.render("Type READY to start (need 2+ players)", True, (255, 255, 100))
+        window.blit(lobby_hint, (input_box.x, input_box.y - 48))
+
     box_color = green if input_active else gray
     pygame.draw.rect(window, white, input_box)
     pygame.draw.rect(window, box_color, input_box, 4)
     input_surf = font.render(input_text, True, black)
     window.blit(input_surf, (input_box.x + 10, input_box.y + 8))
 
+    # ---- command help text ----
+    if game_started and not burger_complete:
+        help_text = "GRAB <item> | USE <station> | PLATE <item> | DUMP | LEAVE | WAIT <station> | QUIT"
+        help_surf = small_font.render(help_text, True, (200, 200, 200))
+        window.blit(help_surf, (input_box.x, input_box.y + input_box.height + 6))
+
     # ---- stations ----
     window.blit(frying_pan_busy_img    if frying_pan_busy    else frying_pan_idle_img,    frying_pan_box.topleft)
     window.blit(cutting_board_busy_img if cutting_board_busy else cutting_board_idle_img, cutting_board_box.topleft)
     window.blit(toaster_oven_busy_img  if toaster_oven_busy  else toaster_oven_idle_img,  toaster_oven_box.topleft)
+
+    # station labels
+    for label_text, box in [("Frying Pan", frying_pan_box), ("Cutting Board", cutting_board_box), ("Toaster Oven", toaster_oven_box)]:
+        lbl = small_font.render(label_text, True, white)
+        window.blit(lbl, (box.x + box.width // 2 - lbl.get_width() // 2, box.y + box.height + 2))
 
     # ---- food crates ----
     window.blit(meat_crate_img,    meat_crate_box.topleft)
     window.blit(lettuce_crate_img, lettuce_crate_box.topleft)
     window.blit(tomato_crate_img,  tomato_crate_box.topleft)
     window.blit(bread_crate_img,   bread_crate_box.topleft)
+
+    # crate labels
+    for label_text, box in [("Meat", meat_crate_box), ("Lettuce", lettuce_crate_box), ("Tomato", tomato_crate_box), ("Bread", bread_crate_box)]:
+        lbl = small_font.render(label_text, True, white)
+        window.blit(lbl, (box.x + box.width // 2 - lbl.get_width() // 2, box.y + box.height + 2))
 
     # ---- held ingredient ----
     window.blit(ITEM_IMAGES.get(held_item, nothing_img), ingredient_box.topleft)
@@ -361,6 +422,13 @@ while running:
         window.blit(tomato_done_img,  tomato_done_box.topleft)
     if meat_done:
         window.blit(meat_done_img,    meat_done_box.topleft)
+
+    # burger progress counter
+    plated_count = sum([bread_done, lettuce_done, tomato_done, meat_done])
+    progress_text = f"Burger: {plated_count}/4"
+    progress_color = green if plated_count == 4 else white
+    progress_surf = font.render(progress_text, True, progress_color)
+    window.blit(progress_surf, (plate_box.x, plate_box.y + plate_box.height + 8))
         
         #Win condition is having the meat done, so show the win overlay immediately when that happens and option to quit.
     if burger_complete:
